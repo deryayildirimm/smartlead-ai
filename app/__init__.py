@@ -1,7 +1,7 @@
 import os
 from types import SimpleNamespace
 
-from flask import Flask, jsonify
+from flask import Flask, abort, jsonify, request
 from flask_cors import CORS
 
 from config import config_by_name
@@ -24,6 +24,17 @@ def create_app(config_name=None, test_config=None):
         raise ValueError(ConfigMessages.INVALID_ENVIRONMENT)
 
     app.config.from_object(config_by_name[environment])
+
+    @app.before_request
+    def protect_unfinished_admin():
+        if (
+            environment == "production"
+            and request.endpoint in {
+                "pages.yonetim_paneli",
+                "api.kayitlari_listele",
+            }
+        ):
+            abort(404)
     app.config["MAX_CONTENT_LENGTH"] = 256 * 1024
 
     if test_config is not None:
