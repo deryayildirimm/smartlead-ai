@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Okuma Platformu — Demo</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f7f5ef;
+      color: #24382f;
+      font-family: system-ui, sans-serif;
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.2;
+    }
+
+    h1 {
+      font-size: clamp(32px, 5vw, 52px);
+      margin-bottom: 16px;
+    }
+
+    .intro {
+      max-width: 700px;
+      margin-bottom: 32px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: #e6ebdf;
+      font-size: 14px;
+    }
+
+    .series,
+    .workspace {
+      display: grid;
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .series {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .workspace {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+      margin-top: 36px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #dedfd5;
+      border-radius: 18px;
+      padding: 24px;
+    }
+
+    .card h2,
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .muted {
+      color: #59645c;
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      width: 100%;
+      font: inherit;
+    }
+
+    input,
+    select,
+    textarea {
+      padding: 11px;
+      border: 1px solid #aeb8ad;
+      border-radius: 9px;
+      background: white;
+      color: #24382f;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 16px;
+      padding: 12px;
+      border: 0;
+      border-radius: 9px;
+      background: #285743;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    button:focus-visible {
+      outline: 3px solid #b27c32;
+      outline-offset: 3px;
+    }
+
+    #chat-messages {
+      height: 320px;
+      overflow-y: auto;
+      padding: 12px;
+      background: #f7f8f3;
+      border-radius: 12px;
+    }
+
+    .message {
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 10px;
+      background: #e8eee3;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .message.user {
+      background: #e5edf5;
+    }
+
+    .message strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .status {
+      min-height: 24px;
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+
+    .status.error {
+      color: #a12525;
+    }
+
+    .status.success {
+      color: #285743;
+    }
+
+    @media (max-width: 760px) {
+      .series,
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header class="intro">
+      <span class="badge">Geliştirme demosu</span>
+      <h1>Gününe küçük bir okuma molası ekle.</h1>
+      <p>
+        İlgi alanına uygun kısa okumalar keşfet.
+        Nereden başlayacağını bilmiyorsan okuma rehberine sor.
+      </p>
+      <p class="muted">
+        Seriler taslak aşamasındadır. Otomatik e-posta gönderimi
+        henüz aktif değildir.
+      </p>
+    </header>
+
+    <section aria-labelledby="series-title">
+      <h2 id="series-title">Demo okuma serileri</h2>
+
+      <div class="series">
+        <article class="card">
+          <h3>Şehrin İçinde</h3>
+          <p>Şehir ve gündelik yaşam üzerine kısa okumalar.</p>
+        </article>
+
+        <article class="card">
+          <h3>İnce Bir Mizah</h3>
+          <p>Mizahi anlatımlarla kısa bir okuma molası.</p>
+        </article>
+
+        <article class="card">
+          <h3>Yeni Başlangıçlar</h3>
+          <p>Değişim ve başlangıç temaları etrafında okumalar.</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <section class="card" aria-labelledby="chat-title">
+        <h2 id="chat-title">Okuma rehberin</h2>
+
+        <p class="muted">
+          Ne okumak istediğini anlatabilirsin.
+          Sohbette kişisel bilgilerini paylaşma.
+        </p>
+
+        <div
+          id="chat-messages"
+          role="log"
+          aria-live="polite"
+          aria-label="Sohbet mesajları"
+        ></div>
+
+        <form id="chat-form">
+          <label for="chat-input">Mesajın</label>
+          <textarea
+            id="chat-input"
+            rows="3"
+            maxlength="2000"
+            placeholder="İki dakikam var, mizahi metinleri seviyorum."
+            required
+          ></textarea>
+
+          <button id="chat-button" type="submit">Sor</button>
+        </form>
+
+        <p id="chat-status" class="status" role="status"></p>
+      </section>
+
+      <section class="card" aria-labelledby="register-title">
+        <h2 id="register-title">İlgi talebi bırak</h2>
+
+        <p class="muted">
+          Bu form aktif abonelik başlatmaz.
+          Yerel test sırasında yalnızca örnek bilgiler kullan.
+        </p>
+
+        <form id="lead-form">
+          <label for="name">İsim</label>
+          <input
+            id="name"
+            name="isim"
+            maxlength="100"
+            autocomplete="name"
+            required
+          >
+
+          <label for="phone">Telefon</label>
+          <input
+            id="phone"
+            name="telefon"
+            type="tel"
+            maxlength="30"
+            autocomplete="tel"
+            required
+          >
+
+          <label for="email">E-posta</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            maxlength="254"
+            autocomplete="email"
+            required
+          >
+
+          <label for="series">İlgilendiğin seri</label>
+          <select id="series" name="seri">
+            <option value="karisik">Benim için seç / Karışık</option>
+            <option value="sehrin_icinde">Şehrin İçinde</option>
+            <option value="ince_bir_mizah">İnce Bir Mizah</option>
+            <option value="yeni_baslangiclar">Yeni Başlangıçlar</option>
+          </select>
+
+          <label for="note">Mesajın — isteğe bağlı</label>
+          <textarea
+            id="note"
+            name="mesaj"
+            rows="3"
+            maxlength="2000"
+          ></textarea>
+
+          <button id="lead-button" type="submit">
+            İlgi talebini kaydet
+          </button>
+        </form>
+
+        <p id="lead-status" class="status" role="status"></p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const chatForm = document.getElementById("chat-form");
+    const chatInput = document.getElementById("chat-input");
+    const chatButton = document.getElementById("chat-button");
+    const chatMessages = document.getElementById("chat-messages");
+    const chatStatus = document.getElementById("chat-status");
+
+    const leadForm = document.getElementById("lead-form");
+    const leadButton = document.getElementById("lead-button");
+    const leadStatus = document.getElementById("lead-status");
+
+    // Yalnızca bu sayfa açıkken tutulur; yenilenince sıfırlanır.
+    let history = [];
+
+    function setStatus(element, message, type = "") {
+      element.textContent = message;
+      element.className = type ? `status ${type}` : "status";
+    }
+
+    function addMessage(role, text) {
+      const container = document.createElement("div");
+      container.className = `message ${role}`;
+
+      const label = document.createElement("strong");
+      label.textContent = role === "user" ? "Sen" : "Okuma rehberi";
+
+      const content = document.createElement("span");
+
+      // Mesajları HTML olarak çalıştırmadan düz metin gösterir.
+      content.textContent = text;
+
+      container.append(label, content);
+      chatMessages.appendChild(container);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function postJSON(url, payload) {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      let data;
+
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("Sunucudan geçerli bir JSON yanıtı alınamadı.");
+      }
+
+      if (!response.ok || data.basari !== true) {
+        throw new Error(data.hata || "İşlem tamamlanamadı.");
+      }
+
+      return data;
+    }
+
+    chatForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (chatButton.disabled) return;
+
+      const message = chatInput.value.trim();
+
+      if (!message) {
+        setStatus(chatStatus, "Lütfen bir mesaj yaz.", "error");
+        return;
+      }
+
+      chatButton.disabled = true;
+      chatInput.disabled = true;
+      setStatus(chatStatus, "Yanıt hazırlanıyor...");
+
+      try {
+        const data = await postJSON("/api/sohbet", {
+          mesaj: message,
+          gecmis: history
+        });
+
+        addMessage("user", message);
+        addMessage("assistant", data.cevap);
+
+        history.push(
+          { role: "user", content: message },
+          { role: "assistant", content: data.cevap }
+        );
+
+        // Backend en fazla son 20 geçmiş mesajı kabul ediyor.
+        history = history.slice(-20);
+
+        chatInput.value = "";
+        setStatus(chatStatus, "");
+      } catch (error) {
+        setStatus(chatStatus, error.message, "error");
+      } finally {
+        chatButton.disabled = false;
+        chatInput.disabled = false;
+        chatInput.focus();
+      }
+    });
+
+    leadForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (leadButton.disabled) return;
+
+      const formData = new FormData(leadForm);
+
+      const payload = {
+        isim: formData.get("isim").trim(),
+        telefon: formData.get("telefon").trim(),
+        email: formData.get("email").trim(),
+        seri: formData.get("seri"),
+        mesaj: formData.get("mesaj").trim()
+      };
+
+      leadButton.disabled = true;
+      setStatus(leadStatus, "Kaydediliyor...");
+
+      try {
+        const data = await postJSON("/api/leads", payload);
+
+        setStatus(
+          leadStatus,
+          `${data.mesaj} Kayıt numarası: ${data.id}`,
+          "success"
+        );
+
+        leadForm.reset();
+      } catch (error) {
+        setStatus(leadStatus, error.message, "error");
+      } finally {
+        leadButton.disabled = false;
+      }
+    });
+
+    addMessage(
+      "assistant",
+      "Merhaba! Ne tür metinlerden hoşlanıyorsun? " +
+      "İstersen ayırabileceğin süreyi de söyleyebilirsin."
+    );
+  </script>
+</body>
+</html>

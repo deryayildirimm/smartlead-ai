@@ -1,0 +1,25 @@
+# Sanal ortamlar
+.venv/
+venv/
+
+# Gizli ortam değişkenleri
+.env
+.env.*
+!.env.example
+
+# Python geçici dosyaları
+__pycache__/
+*.py[cod]
+
+# Yerel veritabanları
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+instance/
+
+# macOS
+.DS_Store
+
+# Test önbelleği
+.pytest_cache/

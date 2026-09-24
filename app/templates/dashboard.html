@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yönetim Paneli — Okuma Platformu</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f7f5ef;
+      color: #24382f;
+      font-family: system-ui, sans-serif;
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    a {
+      color: #285743;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    .muted {
+      color: #59645c;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .count {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 12px 20px;
+      background: #285743;
+      color: white;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    .table-wrapper:focus-visible {
+      outline: 3px solid #b27c32;
+      outline-offset: 3px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      background: white;
+      border: 1px solid #dedfd5;
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 950px;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    caption {
+      text-align: left;
+      padding: 16px;
+      font-weight: 600;
+    }
+
+    th,
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e7e9e1;
+      vertical-align: top;
+    }
+
+    th {
+      background: #e8eee3;
+      white-space: nowrap;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #f8faf5;
+    }
+
+    td {
+      max-width: 280px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .status {
+      min-height: 24px;
+    }
+
+    .error {
+      color: #a12525;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 32px;
+      color: #59645c;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <a href="/">← Karşılama sayfasına dön</a>
+
+    <h1>İlgi talepleri</h1>
+
+    <p class="muted">
+      Kayıt formundan gelen talepler, en yeniden eskiye listelenir.
+    </p>
+
+    <p class="muted">
+      Yerel demo panelidir. Henüz giriş koruması bulunmuyor;
+      yalnızca örnek kayıtlarla kullanıyoruz.
+    </p>
+
+    <div class="toolbar">
+      <p class="count">
+        Toplam kayıt: <span id="lead-count">—</span>
+      </p>
+
+      <button id="refresh-button" type="button">
+        Yenile
+      </button>
+    </div>
+
+    <p id="status" class="status" role="status"></p>
+
+    <div
+      class="table-wrapper"
+      tabindex="0"
+      role="region"
+      aria-label="İlgi talepleri tablosu"
+    >
+      <table>
+        <caption>Gelen kayıtlar</caption>
+
+        <thead>
+          <tr>
+            <th scope="col">İsim</th>
+            <th scope="col">E-posta</th>
+            <th scope="col">Telefon</th>
+            <th scope="col">Seri</th>
+            <th scope="col">Mesaj</th>
+            <th scope="col">Kayıt tarihi</th>
+            <th scope="col">ID</th>
+          </tr>
+        </thead>
+
+        <tbody id="lead-table-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const tableBody = document.getElementById("lead-table-body");
+    const leadCount = document.getElementById("lead-count");
+    const status = document.getElementById("status");
+    const refreshButton = document.getElementById("refresh-button");
+
+    const seriesNames = new Map([
+      ["karisik", "Benim için seç / Karışık"],
+      ["sehrin_icinde", "Şehrin İçinde"],
+      ["ince_bir_mizah", "İnce Bir Mizah"],
+      ["yeni_baslangiclar", "Yeni Başlangıçlar"]
+    ]);
+
+    function formatDate(value) {
+      if (!value) return "—";
+
+      // SQLite CURRENT_TIMESTAMP değerini UTC olarak yorumla.
+      const date = new Date(value.replace(" ", "T") + "Z");
+
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+
+      return new Intl.DateTimeFormat("tr-TR", {
+        dateStyle: "short",
+        timeStyle: "short",
+        timeZone: "Europe/Istanbul"
+      }).format(date);
+    }
+
+    function addCell(row, value) {
+      const cell = document.createElement("td");
+
+      // Kayıt içeriklerini HTML olarak çalıştırmadan göster.
+      cell.textContent =
+        value === null || value === undefined || value === ""
+          ? "—"
+          : String(value);
+
+      row.appendChild(cell);
+    }
+
+    function renderLeads(leads) {
+      tableBody.replaceChildren();
+      leadCount.textContent = leads.length;
+
+      if (leads.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+
+        cell.colSpan = 7;
+        cell.className = "empty";
+        cell.textContent = "Henüz ilgi talebi bulunmuyor.";
+
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+        return;
+      }
+
+      for (const lead of leads) {
+        const row = document.createElement("tr");
+
+        addCell(row, lead.isim);
+        addCell(row, lead.email);
+        addCell(row, lead.telefon);
+        addCell(row, seriesNames.get(lead.seri) || lead.seri);
+        addCell(row, lead.mesaj);
+        addCell(row, formatDate(lead.tarih));
+        addCell(row, lead.id);
+
+        tableBody.appendChild(row);
+      }
+    }
+
+    async function loadLeads() {
+      if (refreshButton.disabled) return;
+
+      refreshButton.disabled = true;
+      status.className = "status";
+      status.textContent = "Kayıtlar yükleniyor...";
+
+      try {
+        const response = await fetch("/api/leads", {
+          cache: "no-store"
+        });
+
+        let data;
+
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error("Sunucudan geçerli bir yanıt alınamadı.");
+        }
+
+        if (!response.ok || data.basari !== true) {
+          throw new Error(data.hata || "Kayıtlar getirilemedi.");
+        }
+
+        if (!Array.isArray(data.leadler)) {
+          throw new Error("Kayıt listesinin biçimi geçersiz.");
+        }
+
+        renderLeads(data.leadler);
+        status.textContent =
+          "Kayıtlar güncellendi. Tarihler Türkiye saatine göredir.";
+
+      } catch (error) {
+        status.className = "status error";
+        status.textContent =
+          error.message + " Daha önce yüklenen liste güncel olmayabilir.";
+
+      } finally {
+        refreshButton.disabled = false;
+      }
+    }
+
+    refreshButton.addEventListener("click", loadLeads);
+
+    // Sayfa ilk açıldığında kayıtları getir.
+    loadLeads();
+  </script>
+</body>
+</html>
