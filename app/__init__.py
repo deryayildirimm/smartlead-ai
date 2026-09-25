@@ -1,3 +1,4 @@
+import hmac
 import os
 from types import SimpleNamespace
 
@@ -25,17 +26,10 @@ def create_app(config_name=None, test_config=None):
 
     app.config.from_object(config_by_name[environment])
 
-    @app.before_request
-    def protect_unfinished_admin():
-        if (
-            environment == "production"
-            and request.endpoint in {
-                "pages.yonetim_paneli",
-                "api.kayitlari_listele",
-            }
-        ):
-            abort(404)
     app.config["MAX_CONTENT_LENGTH"] = 256 * 1024
+    app.config["ADMIN_API_KEY"] = os.environ.get(
+        "ADMIN_API_KEY", ""
+    )
 
     if test_config is not None:
         app.config.update(test_config)
@@ -45,7 +39,33 @@ def create_app(config_name=None, test_config=None):
 
     app.json.ensure_ascii = False
 
-    # Servise yalnızca ihtiyaç duyduğu ayarları veriyoruz.
+    @app.before_request
+    def protect_admin():
+        # Üretimde yönetim arayüzünü Wix üzerinden kullanıyoruz.
+        if (
+            environment == "production"
+            and request.endpoint == "pages.yonetim_paneli"
+        ):
+            abort(404)
+
+        # Kayıt listelemek için her ortamda anahtar gerekir.
+        if request.endpoint != "api.kayitlari_listele":
+            return None
+
+        expected_key = app.config.get("ADMIN_API_KEY", "")
+        provided_key = request.headers.get("X-Admin-Key", "")
+
+        if not expected_key:
+            abort(503)
+
+        if not provided_key or not hmac.compare_digest(
+            provided_key.encode("utf-8"),
+            expected_key.encode("utf-8"),
+        ):
+            abort(403)
+
+        return None
+
     ai_settings = SimpleNamespace(
         AI_PROVIDER=app.config["AI_PROVIDER"],
         GROQ_API_KEY=app.config["GROQ_API_KEY"],
@@ -53,7 +73,6 @@ def create_app(config_name=None, test_config=None):
         BUSINESS_CONTEXT=app.config["BUSINESS_CONTEXT"],
     )
 
-    # Bu servis nesnesi yalnızca bu uygulamaya ait.
     app.extensions["ai_service"] = AIService(
         settings=ai_settings
     )
