@@ -137,7 +137,12 @@ Bu özellikler yol haritasıdır; mevcut demo kapsamına dâhil değildir.
 
 ![SmartLead AI mimarisi](docs/diagram.png)
 
+
 ## Demo videosu
 
 
 [![deryayildirimm/smartlead-ai, explained in a one-minute video](https://gitdiagram.com/api/video/file?username=deryayildirimm&repo=smartlead-ai&format=poster)](https://gitdiagram.com/deryayildirimm/smartlead-ai/video)
+
+## Sunum Videosu
+
+https://www.loom.com/share/23b678a69f0a4992a48455f011166d19
