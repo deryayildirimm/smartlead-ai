@@ -35,6 +35,15 @@ class ValidationRules:
         "sehrin_icinde",
         "ince_bir_mizah",
         "yeni_baslangiclar",
+
+        "Roman",
+        "Şiir",
+        "Polisiye",
+        "Bilim Kurgu",
+        "Felsefe",
+        "Tarih",
+        "Mizah",
+        "Öykü",
     })
 
 

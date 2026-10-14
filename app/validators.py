@@ -72,6 +72,7 @@ def validate_chat(data):
     return message.strip(), clean_history
 
 
+
 def validate_lead(data):
     require_object(data)
 
@@ -99,13 +100,14 @@ def validate_lead(data):
             raise ValidationError(
                 ErrorMessages.FIELD_TOO_LONG.format(
                     field=field,
-                    limit=limit,
+                    limit=limit
                 )
             )
 
         cleaned[field] = value
 
-    for field in ("isim", "telefon", "email"):
+    # Telefon artık zorunlu değil
+    for field in ("isim", "email", "seri"):
         if not cleaned[field]:
             raise ValidationError(
                 ErrorMessages.FIELD_REQUIRED.format(
@@ -113,29 +115,40 @@ def validate_lead(data):
                 )
             )
 
+    # E-posta doğrulama
     if not re.fullmatch(
         r"[^@\s]+@[^@\s]+\.[^@\s]+",
-        cleaned["email"],
+        cleaned["email"]
     ):
         raise ValidationError(ErrorMessages.INVALID_EMAIL)
 
-    if not re.fullmatch(
-        r"\+?[0-9 ()-]{7,30}",
-        cleaned["telefon"],
-    ):
-        raise ValidationError(ErrorMessages.INVALID_PHONE)
+    # Telefon gönderilmişse doğrula
+    if cleaned["telefon"]:
+        if not re.fullmatch(
+            r"\+?[0-9 ()-]{7,30}",
+            cleaned["telefon"]
+        ):
+            raise ValidationError(ErrorMessages.INVALID_PHONE)
 
-    digit_count = sum(
-        character.isdigit()
-        for character in cleaned["telefon"]
-    )
-
-    if not 7 <= digit_count <= 15:
-        raise ValidationError(
-            ErrorMessages.INVALID_PHONE_LENGTH
+        digit_count = sum(
+            char.isdigit()
+            for char in cleaned["telefon"]
         )
+
+        if not 7 <= digit_count <= 15:
+            raise ValidationError(
+                ErrorMessages.INVALID_PHONE_LENGTH
+            )
 
     if cleaned["seri"] not in ValidationRules.ALLOWED_SERIES:
         raise ValidationError(ErrorMessages.INVALID_SERIES)
+
+    # E-posta izni zorunlu
+    if data.get("email_consent") is not True:
+        raise ValidationError(
+            "E-posta gönderim izni gereklidir."
+        )
+
+    cleaned["email_consent"] = True
 
     return cleaned
