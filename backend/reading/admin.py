@@ -21,7 +21,7 @@ class ReadOnlyAdmin(admin.ModelAdmin):
 class GenreAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "is_active")
     list_filter = ("is_active",)
-    search_fields = ("name", "code")
+    search_fields = ("name", "code", "description")
 
 
 @admin.register(ReadingPreference)

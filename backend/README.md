@@ -7,7 +7,7 @@ Kök dizindeki Flask uygulaması önceki sunum demosudur; yeni geliştirme bu kl
 
 - E-posta ile tanımlanan UUID kullanıcıları ve ayrı personel girişi.
 - Wix hesabını ileride eşleştirecek dış kimlik tablosu. Parolasız oluşturulan okuyucuya Django parolası atanmaz.
-- İlk beş tür: bilim kurgu, felsefe, fantastik, mizah ve polisiye.
+- İlk beş tür: bilim kurgu, felsefe, fantastik, mizah ve polisiye. Her türe isteğe bağlı açıklama girilebilir.
 - Birden fazla tür veya “Benim için seç”, 1–60 dakika okuma süresi, haftanın günleri, yerel saat ve IANA saat dilimi.
 - Kimliği doğrulanmış kullanıcının yalnızca kendi tercihlerini okuması/değiştirmesi.
 - Tek transaction içinde kayıt, tekrar kayıtta aynı sonuç, değişiklikte plan sürümünün artması.
@@ -88,7 +88,7 @@ Saat dilimi yerel saatin anlamını korur; gerçek gönderim zamanları ileride 
 | --- | --- | --- |
 | GET | `/health/` | Açık; uygulama canlılığı, veritabanı kullanmaz |
 | GET | `/health/ready/` | Açık; veritabanı bağlantısı, hata ayrıntısı döndürmez |
-| GET | `/api/v1/genres/` | Açık; yalnızca seçime açık türler |
+| GET | `/api/v1/genres/` | Açık; yalnızca seçime açık türlerin `code`, `name` ve `description` alanları |
 | GET | `/api/v1/me/` | Oturum; kendi profil bilgileri |
 | GET, PUT | `/api/v1/me/reading-settings/` | Oturum; kendi tercih ve plan ayarları |
 

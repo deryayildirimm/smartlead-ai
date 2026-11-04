@@ -11,7 +11,9 @@ class GenreListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        return Response(list(Genre.objects.filter(is_active=True).values("code", "name")))
+        return Response(
+            list(Genre.objects.filter(is_active=True).values("code", "name", "description"))
+        )
 
 
 class ReadingSettingsView(APIView):

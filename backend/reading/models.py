@@ -16,6 +16,7 @@ def validate_timezone(value):
 class Genre(models.Model):
     code = models.SlugField(max_length=50, unique=True)
     name = models.CharField("tür adı", max_length=80)
+    description = models.TextField("açıklama", blank=True, default="")
     is_active = models.BooleanField("seçime açık", default=True)
 
     class Meta:
