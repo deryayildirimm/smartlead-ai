@@ -1,8 +1,8 @@
 # PassagePort — Kullanıcı akışı ve veritabanı taslağı
 
-Tarih: 22 Ekim 2026 · Sürüm: 0.1 · Durum: Gözden geçirilecek tasarım önerisi
+Tarih: 4 Kasım 2026 · Sürüm: 0.2 · Durum: Uygulanan modeller ve sonraki adımların taslağı
 
-Bu belge kullanıcı akışını, ilk veri modelini ve temel iş kurallarını tanımlar. İlk sekiz model ve migration'ları `backend/` içinde oluşturuldu. Wix kimlik köprüsü, okuyucu ekranları ve gerçek gönderim sonraki geliştirme adımlarıdır. İlk API okuma süresini 1–60 dakika ile sınırlar.
+Bu belge kullanıcı akışını, ilk veri modelini ve temel iş kurallarını tanımlar. İlk tercih akışının sekiz modeli ve kitap/yazar kataloğu `backend/` içinde oluşturuldu. Wix kimlik köprüsü, okuyucu ekranları ve gerçek gönderim sonraki geliştirme adımlarıdır. İlk API okuma süresini 1–60 dakika ile sınırlar.
 
 ## 1. Ürünün ilk çalışan hedefi
 
@@ -110,7 +110,7 @@ Kodda İngilizce model adları, ekranlarda Türkçe adlar kullanılabilir. `id`,
 | Kullanıcılar — `User` | `id`, `email`, `display_name`, `email_verified_at`, `is_active`, `is_staff` | Normalize e-posta benzersizliği; hesap durumu yalnızca hesap erişimini ifade eder. Parola yönetimi Django mekanizmasına bırakılır. |
 | Dış kimlikler — `ExternalIdentity` | `user_id`, `provider`, `site_id`, `subject` | `(provider, site_id, subject)` benzersiz. İlk sağlayıcı `wix`; `subject` Wix üye kimliğidir. |
 | Okuma tercihleri — `ReadingPreference` | `user_id`, `selection_mode`, `target_minutes`, `language` | Kullanıcı başına en fazla bir profil. `selection_mode`: `SELECTED` / `RANDOM`. Süre pozitif; ilk dil `tr`. |
-| Türler — `Genre` | `id`, `code`, `name`, `is_active` | `code` benzersiz. Bilim kurgu, felsefe, fantastik, mizah ve polisiye ilk kategori önerileridir. |
+| Türler — `Genre` | `id`, `code`, `name`, `description`, `is_active` | `code` benzersiz; açıklama isteğe bağlıdır. Bilim kurgu, felsefe, fantastik, mizah ve polisiye ilk kategori önerileridir. |
 | Tercih–tür bağlantıları — `PreferenceGenre` | `preference_id`, `genre_id` | İkili benzersiz. Çoklu tür seçimini sağlar. |
 | Gönderim planları — `DeliverySchedule` | `user_id`, `local_time`, `timezone`, `status`, `next_run_at`, `version` | Kullanıcı başına en fazla bir plan. `DRAFT` / `ACTIVE` / `PAUSED` / `STOPPED`. |
 | Plan günleri — `ScheduleDay` | `schedule_id`, `weekday` | `(schedule_id, weekday)` benzersiz; 0=Pazartesi … 6=Pazar. Her gün seçimi yedi satırla temsil edilir. |
@@ -131,13 +131,18 @@ erDiagram
     DeliverySchedule ||--o{ ScheduleDay : gunleri
 ```
 
-## 7. İçerik ve e-posta aşamasında eklenecek tablolar
+## 7. Kitap kataloğu ve sıradaki içerik/e-posta tabloları
+
+4 Kasım 2026 güncellemesi: `Author`, `Book`, `BookAuthor` ve `BookGenre` modelleri ile yönetim paneli hazırlandı.
+Kitap/yazar adları tek başına benzersiz değildir. Özgün dil bilinmiyorsa boş bırakılabilir; çeviri dili baskı kaydında tutulacaktır.
+Katalog kaydı, yazar ve tür bağlantıları daha sonra tamamlanmak üzere saklanabilir; kaydetmek yayımlama veya gönderim onayı değildir.
+`BookEdition`, `Passage`, `Delivery` ve `DeliveryAttempt` aşağıda sonraki adımlar olarak tasarlanmıştır.
 
 | Tablo / model | Önemli alanlar | İlişki ve kural |
 | --- | --- | --- |
 | Yazarlar — `Author` | `id`, `name` | Aynı isimli farklı kişiler olabilir; ad tek başına benzersiz kimlik değildir. |
-| Kitaplar — `Book` | `id`, `title`, `original_language`, `description` | Eser bilgisi. Yazarlarla ve türlerle çoktan çoğa ilişki. |
-| Kitap–yazar — `BookAuthor` | `book_id`, `author_id`, `position` | İkili benzersiz; çok yazarlı kitapları destekler. |
+| Kitaplar — `Book` | `id`, `title`, `original_language`, `description`, `created_at`, `updated_at` | Eser bilgisi. Yazarlarla ve türlerle çoktan çoğa ilişki. |
+| Kitap–yazar — `BookAuthor` | `book_id`, `author_id`, `position` | İkili benzersiz; çok yazarlı kitapları destekler. Pozitif sıra bilgisi bağlantıda tutulur; sıralı erişim `book.author_links` üzerinden yapılır. |
 | Kitap–tür — `BookGenre` | `book_id`, `genre_id` | İkili benzersiz; bir kitap birden fazla türe ait olabilir. |
 | Baskı/çeviriler — `BookEdition` | `book_id`, `publisher_name`, `translator_name`, `publication_year`, `language`, `isbn`, `source_url`, `purchase_url` | Pasajın hangi metin/baskıdan alındığını belirler. Satın alma bağlantısı isteğe bağlıdır. |
 | Pasajlar — `Passage` | `edition_id`, `text`, `source_locator`, `word_count`, `estimated_reading_seconds`, `publication_status`, `rights_status`, `rights_basis`, `rights_evidence`, `rights_expires_at`, `approved_by`, `approved_at`, `revision` | Yayımlama ve hak onayı ayrıdır. `publication_status`: `DRAFT` / `PUBLISHED` / `ARCHIVED`; `rights_status`: `UNREVIEWED` / `APPROVED` / `BLOCKED`. |

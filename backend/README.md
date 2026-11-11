@@ -8,13 +8,14 @@ Kök dizindeki Flask uygulaması önceki sunum demosudur; yeni geliştirme bu kl
 - E-posta ile tanımlanan UUID kullanıcıları ve ayrı personel girişi.
 - Wix hesabını ileride eşleştirecek dış kimlik tablosu. Parolasız oluşturulan okuyucuya Django parolası atanmaz.
 - İlk beş tür: bilim kurgu, felsefe, fantastik, mizah ve polisiye. Her türe isteğe bağlı açıklama girilebilir.
+- Kitap/yazar kataloğu: bir kitaba birden fazla yazar ve tür bağlanabilir; yazar sırası bağlantı kaydında tutulur.
 - Birden fazla tür veya “Benim için seç”, 1–60 dakika okuma süresi, haftanın günleri, yerel saat ve IANA saat dilimi.
 - Kimliği doğrulanmış kullanıcının yalnızca kendi tercihlerini okuması/değiştirmesi.
 - Tek transaction içinde kayıt, tekrar kayıtta aynı sonuç, değişiklikte plan sürümünün artması.
 - Ayrı hesap durumu, e-posta doğrulaması, izin geçmişi ve gönderim planı.
 - Yönetim panelinde kullanıcı/tür yönetimi; tercih/plan/izin/dış kimlik kayıtlarının salt okunur incelenmesi.
 
-**Wix oturum bağlantısı, okuyucu ekranları, gerçek pasaj havuzu ve e-posta gönderimi henüz eklenmedi.**
+**Wix oturum bağlantısı, okuyucu ekranları, baskı/çeviri ve gerçek pasaj havuzu ile e-posta gönderimi henüz eklenmedi.**
 Şimdilik API, Django personel oturumuyla yerelde denenebilir. İnternetten erişilebilen sahte üyelik veya kullanıcı kimliği bildirme uç noktası yoktur.
 Yeni planlar `DRAFT` olarak kalır; ayar kaydetmek gönderim izni oluşturmaz. İzin tablosu hazırdır, izin toplama akışı sonraki aşamadadır.
 
@@ -81,6 +82,24 @@ okuyucunun son arayüzü Wix'te hazırlanacaktır. Çıkış yaptıktan sonra ö
 `RANDOM` modunda `genre_codes` boş liste olmalıdır. `PUT` bütün ayarları birlikte günceller;
 `PATCH` henüz desteklenmez. Bilinmeyen alanlar reddedilir, sahiplik oturumdan belirlenir.
 Saat dilimi yerel saatin anlamını korur; gerçek gönderim zamanları ileride UTC hesaplanacaktır.
+
+## Kitap kataloğunu yerelde deneme
+
+Migration'ları uyguladıktan sonra `/admin/` içinde **Yazarlar** ve **Kitaplar** görünür.
+
+1. Yazarlar bölümünde bir yazar oluşturun.
+2. Kitaplar bölümünde kitap adını ve isterseniz açıklamasını girin.
+3. Özgün dili biliyorsanız `tr`, `en`, `fr` gibi bir kod yazın; bilinmiyorsa boş bırakın.
+   Bu alan eserin özgün dilidir. Türkçe çeviri ve kaynak bilgileri ileride baskı kaydında tutulacaktır.
+4. Kitap yazarları satırlarında yazarları ve sıralarını, kitap türleri satırlarında türleri seçip kaydedin.
+5. Kaydı yeniden açıp bağlantıların saklandığını kontrol edin. Listeyi yazar adına göre arayabilir ve türe göre filtreleyebilirsiniz.
+
+`BookAuthor` ve `BookGenre`, kitap ile yazar/tür arasındaki bağlantı tablolarıdır. Aynı bağlantı iki kez kaydedilemez.
+Kitabı silmek bağlantılarını kaldırır; yazarları ve türleri silmez. Bağlı kayıtları olan yazarların ve türlerin doğrudan silinmesi korunur.
+Yazar adı veya kitap adı tek başına benzersiz değildir. Yazar sırası bağlantıda tutulur; sıralı liste için `book.author_links` kullanılır.
+
+Katalog kaydı yazar/tür bilgileri daha sonra tamamlanmak üzere saklanabilir. Kitap eklemek pasaj yayımlamaz veya gönderim başlatmaz.
+Bu adım yalnızca yetkili personelin yönetim panelindedir; yeni bir herkese açık kitap API'si eklenmedi.
 
 ## API
 

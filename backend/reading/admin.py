@@ -1,6 +1,15 @@
 from django.contrib import admin
 
-from .models import ConsentEvent, DeliverySchedule, Genre, ReadingPreference
+from .models import (
+    Author,
+    Book,
+    BookAuthor,
+    BookGenre,
+    ConsentEvent,
+    DeliverySchedule,
+    Genre,
+    ReadingPreference,
+)
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
@@ -22,6 +31,33 @@ class GenreAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "is_active")
     list_filter = ("is_active",)
     search_fields = ("name", "code", "description")
+
+
+@admin.register(Author)
+class AuthorAdmin(admin.ModelAdmin):
+    list_display = ("name", "id")
+    search_fields = ("name",)
+
+
+class BookAuthorInline(admin.TabularInline):
+    model = BookAuthor
+    autocomplete_fields = ("author",)
+    extra = 1
+
+
+class BookGenreInline(admin.TabularInline):
+    model = BookGenre
+    autocomplete_fields = ("genre",)
+    extra = 1
+
+
+@admin.register(Book)
+class BookAdmin(admin.ModelAdmin):
+    list_display = ("title", "original_language", "updated_at")
+    list_filter = ("genres", "original_language")
+    search_fields = ("title", "authors__name")
+    readonly_fields = ("created_at", "updated_at")
+    inlines = (BookAuthorInline, BookGenreInline)
 
 
 @admin.register(ReadingPreference)

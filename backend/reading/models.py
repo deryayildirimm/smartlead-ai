@@ -28,6 +28,77 @@ class Genre(models.Model):
         return self.name
 
 
+class Author(models.Model):
+    name = models.CharField("yazar adı", max_length=200)
+
+    class Meta:
+        ordering = ("name", "pk")
+        verbose_name = "yazar"
+        verbose_name_plural = "yazarlar"
+
+    def __str__(self):
+        return self.name
+
+
+class Book(models.Model):
+    title = models.CharField("kitap adı", max_length=250)
+    original_language = models.CharField(
+        "özgün dil",
+        max_length=10,
+        blank=True,
+        default="",
+        help_text="Biliniyorsa dil kodu: tr, en, fr. Çeviri dili baskı kaydında tutulacak.",
+    )
+    description = models.TextField("açıklama", blank=True, default="")
+    authors = models.ManyToManyField(
+        Author, through="BookAuthor", related_name="books", verbose_name="yazarlar", blank=True
+    )
+    genres = models.ManyToManyField(
+        Genre, through="BookGenre", related_name="books", verbose_name="türler", blank=True
+    )
+    created_at = models.DateTimeField("oluşturulma zamanı", auto_now_add=True)
+    updated_at = models.DateTimeField("güncellenme zamanı", auto_now=True)
+
+    class Meta:
+        ordering = ("title", "pk")
+        verbose_name = "kitap"
+        verbose_name_plural = "kitaplar"
+
+    def __str__(self):
+        return self.title
+
+
+class BookAuthor(models.Model):
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="author_links")
+    author = models.ForeignKey(Author, on_delete=models.PROTECT, related_name="book_links")
+    position = models.PositiveSmallIntegerField(
+        "yazar sırası", default=1, validators=[MinValueValidator(1)]
+    )
+
+    class Meta:
+        ordering = ("position", "pk")
+        verbose_name = "kitap yazarı"
+        verbose_name_plural = "kitap yazarları"
+        constraints = [
+            models.UniqueConstraint(fields=["book", "author"], name="reading_book_author_unique"),
+            models.CheckConstraint(
+                condition=models.Q(position__gte=1), name="reading_author_position_positive"
+            ),
+        ]
+
+
+class BookGenre(models.Model):
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="genre_links")
+    genre = models.ForeignKey(Genre, on_delete=models.PROTECT, related_name="book_links")
+
+    class Meta:
+        verbose_name = "kitap türü"
+        verbose_name_plural = "kitap türleri"
+        constraints = [
+            models.UniqueConstraint(fields=["book", "genre"], name="reading_book_genre_unique"),
+        ]
+
+
 class ReadingPreference(models.Model):
     class SelectionMode(models.TextChoices):
         SELECTED = "SELECTED", "Türlerimi seçtim"
