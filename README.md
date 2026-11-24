@@ -1,4 +1,18 @@
-# Gün Arası | SmartLead AI
+# PassagePort
+
+Yeni ürün geliştirmesi **Python / Django 5.2 LTS + PostgreSQL** ile [backend/](backend/README.md)
+klasöründe başladı. Kullanıcı, yönetim girişi ve okuma tercih API'si bu temelde hazırlanıyor;
+okuyucu arayüzü ve üyelik için Wix ile devam edilecek.
+
+Kurulum ve güncel kapsam: **[PassagePort backend](backend/README.md)**.
+
+Kullanıcı akışı ve veri modeli: [tasarım belgesi](docs/passageport-user-flow-and-data-model.md).
+
+Aşağıdaki bölüm önceki Flask sunum demosunu anlatır. Mevcut canlı servisin dağıtım ayarları bu aşamada değiştirilmedi.
+
+---
+
+# Gün Arası | SmartLead AI — önceki demo
 
 Yoğun gündelik yaşamda kısa okuma molalarına alan açmayı amaçlayan, yapay zekâ destekli okuma rehberi ve okuyucu kayıt sistemi.
 
@@ -22,7 +36,7 @@ Bu proje, SmartLead AI eğitim yönergesindeki sohbet ve müşteri adayı (lead)
 - Veri doğrulama, merkezi hata yönetimi ve kullanıcıya anlaşılır yanıtlar.
 - Yönetim işlemleri için erişim kontrolleri.
 
-Otomatik e-posta gönderimi, beğenilere göre öğrenen kişiselleştirme bu sürümde bulunmamaktadır. 
+Otomatik e-posta gönderimi ve beğenilere göre öğrenen kişiselleştirme bu sürümde bulunmamaktadır.
 
 ## Teknolojiler
 
@@ -51,13 +65,19 @@ Otomatik e-posta gönderimi, beğenilere göre öğrenen kişiselleştirme bu s�
 | `app/errors.py` | Hataların uygun HTTP/JSON yanıtlarına dönüştürülmesi |
 | `constants.py` | Ortak sabitler ve mesajlar |
 
-SQL işlemleri veri katmanında, yapay zekâ çağrıları AI servisinde tutulur. Rotalar bu katmanları çağırır. AI servisi, uygulama fabrikasından kendisine verilen ayarlarla oluşturulur; uygulamaya ait servis `app.extensions` üzerinden kullanılır.
+SQL işlemleri veri katmanında, yapay zekâ çağrıları AI servisinde tutulur.
+Rotalar bu katmanları çağırır. AI servisi, uygulama fabrikasından kendisine
+verilen ayarlarla oluşturulur; uygulamaya ait servis `app.extensions`
+üzerinden kullanılır.
 
-Wix tarafında sohbet, kayıt oluşturma ve yönetim işlemleri Velo kodlarıyla yürütülür. Wix editöründe tutulan bu kodlar, Python deposundan ayrı bir yayınlama ortamına sahiptir.
+Wix tarafında sohbet, kayıt oluşturma ve yönetim işlemleri Velo kodlarıyla
+yürütülür. Wix editöründe tutulan bu kodlar, Python deposundan ayrı bir
+yayınlama ortamına sahiptir.
 
 ## Yerel kurulum
 
-Python 3.12 ve Git gereklidir. Depoyu klonlayın; aşağıdaki ilk komutta adresi kendi GitHub depo adresinizle değiştirin:
+Python 3.12 ve Git gereklidir. Depoyu klonlayın; aşağıdaki ilk komutta
+adresi kendi GitHub depo adresinizle değiştirin:
 
 ```bash
 git clone <GITHUB_DEPO_ADRESI> smartlead_ai
@@ -67,7 +87,8 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Proje kökünde `.env` dosyası oluşturun. Aşağıdaki örnekteki yer tutucuları kendi değerlerinizle değiştirin:
+Proje kökünde `.env` dosyası oluşturun. Aşağıdaki örnekteki yer tutucuları
+kendi değerlerinizle değiştirin:
 
 ```dotenv
 APP_ENV=development
@@ -79,7 +100,10 @@ ADMIN_API_KEY=BURAYA_AYRI_UZUN_BIR_YONETICI_ANAHTARI
 CORS_ORIGINS=http://localhost:5000
 ```
 
-Veritabanı yolu ve ek ayarlar için `config.py` içindeki tanımları esas alın. Örnekteki değerler gerçek anahtar değildir; gerçek anahtarları README'ye veya GitHub'a eklemeyin. Model erişimi Groq hesabına bağlıdır; erişilebilir model adını yapılandırmada kullanın.
+Veritabanı yolu ve ek ayarlar için `config.py` içindeki tanımları esas alın.
+Örnekteki değerler gerçek anahtar değildir; gerçek anahtarları README'ye
+veya GitHub'a eklemeyin. Model erişimi Groq hesabına bağlıdır; erişilebilir
+model adını yapılandırmada kullanın.
 
 Uygulamayı başlatın:
 
@@ -87,7 +111,9 @@ Uygulamayı başlatın:
 python run.py
 ```
 
-Varsayılan yerel adres: `http://localhost:5000`. Çalışan port için terminal çıktısını kontrol edin. Veritabanı başlangıç kurulumu uygulama fabrikasında `init_db(app)` ile yapılır.
+Varsayılan yerel adres: `http://localhost:5000`.
+Çalışan port için terminal çıktısını kontrol edin.
+Veritabanı başlangıç kurulumu uygulama fabrikasında `init_db(app)` ile yapılır.
 
 ## API uç noktaları
 
@@ -100,7 +126,10 @@ Varsayılan yerel adres: `http://localhost:5000`. Çalışan port için terminal
 | GET | `/` | Flask karşılama şablonu |
 | GET | `/dashboard` | Flask yönetim şablonu; üretimde kapalı tutulabilir |
 
-Ziyaretçiye sunulan ana arayüz Wix sitesidir. Üretimde yönetim işlemleri Wix yönetim sayfasından yürütülür. API yanıtları `basari` alanı içerir; sohbet yanıtı `cevap`, kayıt listesi `leadler` alanındadır.
+Ziyaretçiye sunulan ana arayüz Wix sitesidir.
+Üretimde yönetim işlemleri Wix yönetim sayfasından yürütülür.
+API yanıtları `basari` alanı içerir; sohbet yanıtı `cevap`,
+kayıt listesi `leadler` alanındadır.
 
 Örnek sohbet isteği:
 
@@ -122,8 +151,6 @@ Render servisi GitHub deposuna bağlanır.
 - İzin verilen origin değerleri yayımlanmış Wix adresiyle eşleştirilir.
 - Yönetici anahtarı Wix Secrets Manager'da saklanır; tarayıcıya gönderilmez.
 
-
-
 ## Sonraki aşamalar
 
 - Kullanıcının seçtiği gün ve saatte e-posta gönderimi.
@@ -137,9 +164,7 @@ Bu özellikler yol haritasıdır; mevcut demo kapsamına dâhil değildir.
 
 ![SmartLead AI mimarisi](docs/diagram.png)
 
-
 ## Demo videosu
-
 
 [![deryayildirimm/smartlead-ai, explained in a one-minute video](https://gitdiagram.com/api/video/file?username=deryayildirimm&repo=smartlead-ai&format=poster)](https://gitdiagram.com/deryayildirimm/smartlead-ai/video)
 
